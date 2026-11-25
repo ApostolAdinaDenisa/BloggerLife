@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogger Life — Creează-ți propriul blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Lora"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDF9FA;
+            color: #2D222F;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Simulated Inbox Toast for Email Confirmation -->
+    <div id="emailInboxToast" class="fixed top-4 right-4 z-50 hidden max-w-sm bg-white border border-pink-200 text-stone-800 rounded-2xl p-4 shadow-xl shadow-pink-500/10">
+        <div class="flex items-start gap-3">
+            <span class="text-xl bg-pink-50 w-9 h-9 rounded-full flex items-center justify-center shrink-0">💌</span>
+            <div class="flex-1 text-xs">
+                <div class="font-bold text-pink-600 uppercase tracking-wider mb-0.5">Email nou • Blogger Life</div>
+                <p class="text-stone-600">Codul tău de confirmare este: <strong id="toastCodeDisplay" class="text-purple-600 text-sm font-mono bg-purple-50 px-2 py-0.5 rounded">1234</strong></p>
+                <button onclick="autoFillCode()" class="mt-2 text-[11px] font-semibold bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1.5 rounded-full hover:opacity-90 transition shadow-xs">
+                    Completează automat ✨
+                </button>
+            </div>
+            <button onclick="document.getElementById('emailInboxToast').classList.add('hidden')" class="text-stone-400 hover:text-stone-700 text-xs">✕</button>
+        </div>
+    </div>
+
+    <!-- Top Navigation -->
+    <header class="sticky top-0 z-30 bg-[#FDF9FA]/90 backdrop-blur-md border-b border-pink-100/80">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- Brand -->
+            <a href="#" onclick="switchView('home'); return false;" class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-2xl bg-gradient-to-br from-pink-400 to-purple-500 text-white flex items-center justify-center font-serif font-bold text-lg shadow-sm shadow-pink-300/40">B</span>
+                <span class="font-serif font-bold text-xl tracking-tight text-[#2D222F]">Blogger <span class="text-pink-500">Life</span></span>
+            </a>
+
+            <!-- Nav Actions -->
+            <div id="navActions" class="flex items-center gap-2 sm:gap-3">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:py-10">
+
+        <!-- VIEW 1: HOME / LANDING + FEED -->
+        <section id="viewHome" class="space-y-10">
+            
+            <!-- Hero Section with Image & 2 Main Options -->
+            <div class="bg-gradient-to-br from-white via-[#FFF7FA] to-[#F6F0FF] rounded-3xl border border-pink-100/80 overflow-hidden shadow-sm shadow-pink-500/5 grid grid-cols-1 lg:grid-cols-12">
+                <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1 rounded-full w-fit mb-4">
+                        🌸 Spațiul tău creativ
+                    </span>
+                    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-[#2D222F] leading-tight">
+                        Poveștile tale merită propriul lor colț.
+                    </h1>
+                    <p class="text-stone-600 text-sm sm:text-base mt-3 leading-relaxed max-w-lg">
+                        Alege ce vrei să faci astăzi: descoperă articole scrise cu suflet și lasă gânduri fără cont, sau deschide-ți propriul blog în 30 de secunde.
+                    </p>
+
+                    <!-- Two Core Options -->
+                    <div class="flex flex-wrap items-center gap-3 mt-7">
+                        <button onclick="scrollToFeed()" class="bg-white hover:bg-pink-50/70 text-[#2D222F] border border-pink-200 font-semibold text-sm px-6 py-3 rounded-full transition flex items-center gap-2 shadow-2xs">
+                            <span>📖</span>
+                            <span>Citește Bloguri</span>
+                        </button>
+                        <button onclick="handleBecomeBloggerClick()" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-sm px-6 py-3 rounded-full shadow-md shadow-pink-500/20 transition flex items-center gap-2">
+                            <span>✨</span>
+                            <span id="heroBloggerBtnText">Devino Blogger</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 relative min-h-[240px] lg:min-h-full bg-pink-50">
+                    <img 
+                        src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80" 
+                        alt="Jurnal, cărți și flori în tonuri pastelate" 
+                        class="w-full h-full object-cover"
+                    >
+                    <div class="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-pink-500/5 to-transparent"></div>
+                </div>
+            </div>
+
+            <!-- Public Blog Feed -->
+            <div id="feedSection" class="space-y-6 pt-2">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="font-serif text-2xl font-bold text-[#2D222F]">Explorează Blogurile</h2>
+                        <p class="text-xs text-stone-500 mt-0.5">Poți citi orice articol și poți lăsa comentarii fără să ai cont.</p>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="relative w-full sm:w-64">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            oninput="renderFeed()" 
+                            placeholder="Caută un articol sau autor..." 
+                            class="w-full pl-9 pr-4 py-2 text-xs bg-white border border-pink-200/80 rounded-full focus:outline-none focus:border-purple-400 transition"
+                        >
+                        <svg class="w-4 h-4 text-pink-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div id="categoryFilters" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Articles Grid -->
+                <div id="articlesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: SINGLE ARTICLE READER + NO-ACCOUNT COMMENTS -->
+        <section id="viewArticle" class="hidden max-w-3xl mx-auto">
+            <button onclick="switchView('home')" class="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-pink-600 mb-6 transition">
+                <span>←</span> Înapoi la toate blogurile
+            </button>
+
+            <article id="articleDetailContainer" class="bg-white rounded-3xl border border-pink-100 p-6 sm:p-10 shadow-sm shadow-pink-500/5">
+                <!-- Populated via JS -->
+            </article>
+        </section>
+
+        <!-- VIEW 3: AUTH (REGISTER + EMAIL CONFIRMATION + LOGIN) -->
+        <section id="viewAuth" class="hidden max-w-md mx-auto py-4">
+            <div class="bg-white rounded-3xl border border-pink-100 p-6 sm:p-8 shadow-sm shadow-pink-500/5">
+                
+                <!-- Tabs -->
+                <div id="authTabs" class="grid grid-cols-2 gap-1 bg-[#FDF5F8] p-1 rounded-full mb-6 border border-pink-100">
+                    <button type="button" id="tabRegister" onclick="switchAuthTab('register')" class="py-2 text-xs font-semibold rounded-full bg-white text-pink-600 shadow-2xs transition">Creează Cont</button>
+                    <button type="button" id="tabLogin" onclick="switchAuthTab('login')" class="py-2 text-xs font-semibold rounded-full text-stone-500 hover:text-stone-800 transition">Intră în Cont</button>
+                </div>
+
+                <!-- Step 1: Register Form -->
+                <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4">
+                    <div class="text-center mb-4">
+                        <h2 class="font-serif text-2xl font-bold text-[#2D222F]">Devino Blogger ✨</h2>
+                        <p class="text-xs text-stone-500 mt-1">Completează numele și email-ul pentru a primi codul de activare.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-600 mb-1">Numele tău</label>
+                        <input type="text" id="regName" required placeholder="Ex: Elena Ionescu" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-600 mb-1">Adresa de Email</label>
+                        <input type="email" id="regEmail" required placeholder="elena@email.ro" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-sm py-3 rounded-full shadow-md shadow-pink-500/20 transition">
+                        Trimite codul de confirmare →
+                    </button>
+                </form>
+
+                <!-- Step 2: Email Verification Code -->
+                <form id="verifyForm" onsubmit="handleVerifyCode(event)" class="hidden space-y-4 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center text-2xl mx-auto">📩</div>
+                    <h2 class="font-serif text-2xl font-bold text-[#2D222F]">Confirmă contul</h2>
+                    <p class="text-xs text-stone-500">Am trimis un cod din 4 cifre la <strong id="verifyEmailLabel" class="text-purple-600"></strong>.</p>
+
+                    <div class="py-2">
+                        <input 
+                            type="text" 
+                            id="verifyCodeInput" 
+                            maxlength="4" 
+                            required 
+                            placeholder="0000" 
+                            class="w-40 text-center tracking-[0.5em] font-mono text-2xl font-bold py-3 bg-[#FDF9FA] border border-pink-200 rounded-2xl focus:outline-none focus:border-purple-400"
+                        >
+                    </div>
+                    <p id="verifyError" class="hidden text-xs text-rose-500 font-medium">Cod incorect. Încearcă din nou.</p>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-sm py-3 rounded-full shadow-md shadow-pink-500/20 transition">
+                        Confirmă și continuă ✨
+                    </button>
+                </form>
+
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="handleLogin(event)" class="hidden space-y-4">
+                    <div class="text-center mb-4">
+                        <h2 class="font-serif text-2xl font-bold text-[#2D222F]">Bine ai revenit 🌸</h2>
+                        <p class="text-xs text-stone-500 mt-1">Introdu adresa de email cu care ți-ai confirmat contul.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-600 mb-1">Adresa de Email</label>
+                        <input type="email" id="loginEmail" required placeholder="elena@email.ro" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                    </div>
+
+                    <p id="loginError" class="hidden text-xs text-rose-500 font-medium"></p>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-sm py-3 rounded-full shadow-md shadow-pink-500/20 transition">
+                        Intră în Studio →
+                    </button>
+                </form>
+
+            </div>
+        </section>
+
+        <!-- VIEW 4: BLOGGER ONBOARDING QUESTIONNAIRE -->
+        <section id="viewOnboarding" class="hidden max-w-xl mx-auto py-2">
+            <div class="bg-white rounded-3xl border border-pink-100 p-6 sm:p-9 shadow-sm shadow-pink-500/5">
+                <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-3 py-1 rounded-full mb-3">
+                    Configurare Blog • 1 minut
+                </span>
+                <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[#2D222F]">Spune-ne despre blogul tău</h2>
+                <p class="text-xs sm:text-sm text-stone-500 mt-1 mb-6">Răspunde la aceste 4 întrebări scurte ca să îți pregătim spațiul de scris.</p>
+
+                <form onsubmit="handleOnboardingSubmit(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1.5">1. Cum se va numi blogul tău?</label>
+                        <input type="text" id="obBlogName" required placeholder="Ex: Jurnal cu Lavandă / Gânduri în Roz" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1.5">2. Ce categorie principală alegi?</label>
+                        <select id="obCategory" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                            <option value="Lifestyle & Jurnal">🌸 Lifestyle & Jurnal</option>
+                            <option value="Beauty & Fashion">💄 Beauty & Fashion</option>
+                            <option value="Călătorii">✈️ Călătorii</option>
+                            <option value="Cărți & Filme">📚 Cărți & Filme</option>
+                            <option value="Gânduri & Motivație">💜 Gânduri & Motivație</option>
+                            <option value="Rețete & Acasă">🧁 Rețete & Acasă</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1.5">3. Despre ce este blogul tău și ce vrei să transmiți?</label>
+                        <textarea id="obAbout" required rows="3" placeholder="Ex: Vreau să scriu despre mici bucurii zilnice, cărți bune și idei care inspiră..." class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400 resize-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1.5">4. Cât de mult contează acest blog pentru tine și cât de des vrei să postezi?</label>
+                        <select id="obCommitment" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                            <option value="Foarte mult — vreau să postez de 2-3 ori pe săptămână">Foarte mult — vreau să postez de 2-3 ori pe săptămână</option>
+                            <option value="Este pasiunea mea de weekend — 1 articol pe săptămână">Este pasiunea mea de weekend — 1 articol pe săptămână</option>
+                            <option value="Scriu relaxat, ori de câte ori am inspirație">Scriu relaxat, ori de câte ori am inspirație</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold text-sm py-3.5 rounded-full shadow-md shadow-pink-500/20 transition">
+                        Lansează blogul meu ✨
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 5: BLOGGER DASHBOARD & ACTIVITY REPORT -->
+        <section id="viewDashboard" class="hidden space-y-8">
+            
+            <!-- Dashboard Header -->
+            <div class="bg-gradient-to-r from-white via-[#FFF7FA] to-[#F7F1FF] rounded-3xl border border-pink-100 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm shadow-pink-500/5">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="dashCategoryBadge" class="text-[11px] font-semibold bg-purple-50 text-purple-600 border border-purple-100 px-2.5 py-0.5 rounded-full"></span>
+                        <span class="text-xs text-pink-500 font-semibold">• Cont confirmat ✓</span>
+                    </div>
+                    <h1 id="dashBlogTitle" class="font-serif text-2xl sm:text-3xl font-bold text-[#2D222F]"></h1>
+                    <p id="dashBlogAbout" class="text-xs sm:text-sm text-stone-600 mt-1 max-w-xl"></p>
+                </div>
+
+                <button onclick="openNewPostModal()" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-sm font-semibold px-5 py-3 rounded-full shadow-md shadow-pink-500/20 transition shrink-0 flex items-center gap-2 self-start sm:self-center">
+                    <span>+</span>
+                    <span>Scrie o postare nouă</span>
+                </button>
+            </div>
+
+            <!-- Activity Report Cards -->
+            <div>
+                <h2 class="text-xs font-bold uppercase tracking-wider text-pink-500 mb-3">Raportul tău de activitate</h2>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-2xl border border-pink-100 p-5 shadow-2xs">
+                        <div class="text-xs text-stone-500 font-medium">Articole postate</div>
+                        <div id="statPostsCount" class="font-serif text-3xl font-bold text-[#2D222F] mt-1">0</div>
+                        <div class="text-[11px] text-pink-500 font-medium mt-1">Publicate pe blog</div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-pink-100 p-5 shadow-2xs">
+                        <div class="text-xs text-stone-500 font-medium">Total vizualizări</div>
+                        <div id="statViewsCount" class="font-serif text-3xl font-bold text-[#2D222F] mt-1">0</div>
+                        <div class="text-[11px] text-purple-500 font-medium mt-1">Cititori unici</div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-pink-100 p-5 shadow-2xs">
+                        <div class="text-xs text-stone-500 font-medium">Comentarii primite</div>
+                        <div id="statCommentsCount" class="font-serif text-3xl font-bold text-[#2D222F] mt-1">0</div>
+                        <div class="text-[11px] text-pink-500 font-medium mt-1">De la comunitate</div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-pink-100 p-5 shadow-2xs">
+                        <div class="text-xs text-stone-500 font-medium">Nivel Blogger</div>
+                        <div id="statRankLabel" class="font-serif text-xl font-bold text-purple-600 mt-2">Începător</div>
+                        <div id="statGoalText" class="text-[11px] text-stone-400 mt-1 truncate"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blogger's Own Posts -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-serif text-xl font-bold text-[#2D222F]">Postările tale</h2>
+                    <button onclick="switchView('home')" class="text-xs font-semibold text-purple-600 hover:underline">Vezi cum arată în feed →</button>
+                </div>
+                <div id="myPostsList" class="space-y-4">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- NEW POST MODAL -->
+    <div id="newPostModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-[#2D222F]/40 backdrop-blur-xs">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-xl border border-pink-100">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-serif text-2xl font-bold text-[#2D222F]">Postare nouă 🌸</h3>
+                <button onclick="closeNewPostModal()" class="w-8 h-8 rounded-full bg-pink-50 hover:bg-pink-100 flex items-center justify-center text-pink-600 text-sm">✕</button>
+            </div>
+
+            <form onsubmit="handleCreatePost(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-stone-600 mb-1">Titlul articolului *</label>
+                    <input type="text" id="postTitleInput" required placeholder="Ex: 5 lucruri care mi-au adus liniște luna aceasta" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-stone-600 mb-1">Categorie</label>
+                    <select id="postCategoryInput" class="w-full px-4 py-2.5 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400">
+                        <option value="Lifestyle & Jurnal">🌸 Lifestyle & Jurnal</option>
+                        <option value="Beauty & Fashion">💄 Beauty & Fashion</option>
+                        <option value="Călătorii">✈️ Călătorii</option>
+                        <option value="Cărți & Filme">📚 Cărți & Filme</option>
+                        <option value="Gânduri & Motivație">💜 Gânduri & Motivație</option>
+                        <option value="Rețete & Acasă">🧁 Rețete & Acasă</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-stone-600 mb-1">Conținutul articolului *</label>
+                    <textarea id="postContentInput" required rows="5" placeholder="Scrie gândurile tale aici..." class="w-full px-4 py-3 text-sm bg-[#FDF9FA] border border-pink-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-purple-400 resize-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeNewPostModal()" class="px-4 py-2.5 text-xs font-semibold text-stone-500 hover:bg-pink-50 rounded-full">Anulează</button>
+                    <button type="submit" class="px-6 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-full shadow-sm">Publică articolul ✨</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const CATEGORIES = ['Toate', 'Lifestyle & Jurnal', 'Beauty & Fashion', 'Călătorii', 'Cărți & Filme', 'Gânduri & Motivație', 'Rețete & Acasă'];
+
+        const SEED_ARTICLES = [
+            {
+                id: 101,
+                authorEmail: 'maria@bloggerlife.ro',
+                authorName: 'Maria L.',
+                blogName: 'Note în Pastel',
+                category: 'Lifestyle & Jurnal',
+                title: 'Cum mi-am creat un ritual de dimineață fără telefon în prima oră',
+                content: 'Mult timp am crezut că am nevoie de o rutină complicată ca să am o zi bună. De fapt, tot ce a contat a fost să îmi las telefonul în altă cameră seara și să îmi beau cafeaua în liniște, cu un caiet alături în care notez trei gânduri simple.',
+                date: 'Acum 2 ore',
+                views: 184,
+                comments: [
+                    { name: 'Ioana', text: 'Am încercat și eu asta săptămâna trecută și diferența de energie e uriașă!', date: 'Acum 1 oră' },
+                    { name: 'Vizitator', text: 'Super inspirat articolul, mulțumesc pentru idee 🌸', date: 'Acum 30 min' }
+                ]
+            },
+            {
+                id: 102,
+                authorEmail: 'clara@bloggerlife.ro',
+                authorName: 'Clara V.',
+                blogName: 'Valiza cu Amintiri',
+                category: 'Călătorii',
+                title: 'Un weekend de primăvară în Brașov: locuri ascunse și cafenele cozy',
+                content: 'Dincolo de Piața Sfatului, străduțele liniștite de sub Tâmpa ascund librării mici și cafenele cu lumină caldă unde timpul pare să stea pe loc. Iată traseul meu preferat pentru două zile de relaxare.',
+                date: 'Ieri',
+                views: 265,
+                comments: [
+                    { name: 'Andreea', text: 'Salvez postarea pentru weekendul viitor!', date: 'Ieri' }
+                ]
+            },
+            {
+                id: 103,
+                authorEmail: 'sofia@bloggerlife.ro',
+                authorName: 'Sofia D.',
+                blogName: 'Raftul cu Povești',
+                category: 'Cărți & Filme',
+                title: '3 cărți calde pe care le citești pe nerăsuflate într-o duminică ploioasă',
+                content: 'Uneori nu ai chef de thrillere complicate, ci de povești despre oameni, prietenie și noi începuturi. Acestea sunt cele trei recomandări ale mele care îți lasă o stare de bine mult timp după ultima pagină.',
+                date: 'Acum 2 zile',
+                views: 312,
+                comments: []
+            }
+        ];
+
+        // State
+        let users = JSON.parse(localStorage.getItem('bl_users')) || [];
+        let articles = JSON.parse(localStorage.getItem('bl_articles')) || SEED_ARTICLES;
+        let currentUserEmail = localStorage.getItem('bl_current_user') || null;
+        let selectedCategory = 'Toate';
+        let pendingUser = null;
+        let generatedCode = '';
+
+        function saveState() {
+            localStorage.setItem('bl_users', JSON.stringify(users));
+            localStorage.setItem('bl_articles', JSON.stringify(articles));
+            if (currentUserEmail) {
+                localStorage.setItem('bl_current_user', currentUserEmail);
+            } else {
+                localStorage.removeItem('bl_current_user');
+            }
+        }
+
+        function getCurrentUser() {
+            return users.find(u => u.email === currentUserEmail) || null;
+        }
+
+        // Navigation & Views
+        function switchView(viewName) {
+            ['viewHome', 'viewArticle', 'viewAuth', 'viewOnboarding', 'viewDashboard'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('view' + viewName.charAt(0).toUpperCase() + viewName.slice(1)).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderNavbar();
+
+            if (viewName === 'home') renderFeed();
+            if (viewName === 'dashboard') renderDashboard();
+        }
+
+        function renderNavbar() {
+            const nav = document.getElementById('navActions');
+            const user = getCurrentUser();
+            const heroBtn = document.getElementById('heroBloggerBtnText');
+
+            if (user && user.verified) {
+                if (heroBtn) heroBtn.textContent = 'Mergi la Blogul Meu';
+                nav.innerHTML = `
+                    <button onclick="switchView('home')" class="text-xs font-semibold text-stone-600 hover:text-pink-600 px-3 py-2">Citește</button>
+                    <button onclick="switchView('dashboard')" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-semibold px-4 py-2 rounded-full hover:opacity-95 transition shadow-xs">
+                        Blogul Meu ✨
+                    </button>
+                    <button onclick="logout()" class="text-xs text-stone-400 hover:text-rose-500 px-2 py-2" title="Deconectare">Ieși</button>
+                `;
+            } else {
+                if (heroBtn) heroBtn.textContent = 'Devino Blogger';
+                nav.innerHTML = `
+                    <button onclick="switchView('home')" class="text-xs font-semibold text-stone-600 hover:text-pink-600 px-3 py-2">Citește Bloguri</button>
+                    <button onclick="openAuth('register')" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-semibold px-4 py-2 rounded-full hover:opacity-95 transition shadow-xs">
+                        Devino Blogger
+                    </button>
+                `;
+            }
+        }
+
+        function handleBecomeBloggerClick() {
+            const user = getCurrentUser();
+            if (user && user.verified) {
+                switchView(user.onboarded ? 'dashboard' : 'onboarding');
+            } else {
+                openAuth('register');
+            }
+        }
+
+        function scrollToFeed() {
+            document.getElementById('feedSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Auth Flow
+        function openAuth(tab) {
+            switchView('auth');
+            switchAuthTab(tab);
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('verifyForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('authTabs').classList.remove('hidden');
+
+            if (tab === 'register') {
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabRegister').className = 'py-2 text-xs font-semibold rounded-full bg-white text-pink-600 shadow-2xs transition';
+                document.getElementById('tabLogin').className = 'py-2 text-xs font-semibold rounded-full text-stone-500 hover:text-stone-800 transition';
+            } else {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('tabLogin').className = 'py-2 text-xs font-semibold rounded-full bg-white text-pink-600 shadow-2xs transition';
+                document.getElementById('tabRegister').className = 'py-2 text-xs font-semibold rounded-full text-stone-500 hover:text-stone-800 transition';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+
+            generatedCode = Math.floor(1000 + Math.random() * 9000).toString();
+            pendingUser = { name, email, verified: false, onboarded: false };
+
+            document.getElementById('authTabs').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('verifyForm').classList.remove('hidden');
+            document.getElementById('verifyEmailLabel').textContent = email;
+            document.getElementById('verifyCodeInput').value = '';
+            document.getElementById('verifyError').classList.add('hidden');
+
+            // Show simulated email toast
+            document.getElementById('toastCodeDisplay').textContent = generatedCode;
+            document.getElementById('emailInboxToast').classList.remove('hidden');
+        }
+
+        function autoFillCode() {
+            document.getElementById('verifyCodeInput').value = generatedCode;
+            document.getElementById('emailInboxToast').classList.add('hidden');
+        }
+
+        function handleVerifyCode(e) {
+            e.preventDefault();
+            const code = document.getElementById('verifyCodeInput').value.trim();
+            if (code !== generatedCode) {
+                document.getElementById('verifyError').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('emailInboxToast').classList.add('hidden');
+            pendingUser.verified = true;
+
+            const existingIdx = users.findIndex(u => u.email === pendingUser.email);
+            if (existingIdx >= 0) {
+                users[existingIdx] = { ...users[existingIdx], verified: true };
+            } else {
+                users.push(pendingUser);
+            }
+
+            currentUserEmail = pendingUser.email;
+            saveState();
+
+            const user = getCurrentUser();
+            if (user.onboarded) {
+                switchView('dashboard');
+            } else {
+                switchView('onboarding');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const user = users.find(u => u.email === email && u.verified);
+            const errEl = document.getElementById('loginError');
+
+            if (!user) {
+                errEl.textContent = 'Nu am găsit un cont confirmat cu acest email. Creează unul nou!';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            errEl.classList.add('hidden');
+            currentUserEmail = user.email;
+            saveState();
+            switchView(user.onboarded ? 'dashboard' : 'onboarding');
+        }
+
+        function logout() {
+            currentUserEmail = null;
+            saveState();
+            switchView('home');
+        }
+
+        // Onboarding
+        function handleOnboardingSubmit(e) {
+            e.preventDefault();
+            const user = getCurrentUser();
+            if (!user) return;
+
+            user.blogName = document.getElementById('obBlogName').value.trim();
+            user.category = document.getElementById('obCategory').value;
+            user.about = document.getElementById('obAbout').value.trim();
+            user.commitment = document.getElementById('obCommitment').value;
+            user.onboarded = true;
+
+            saveState();
+            switchView('dashboard');
+        }
+
+        // Feed & Categories
+        function renderFeed() {
+            const catContainer = document.getElementById('categoryFilters');
+            catContainer.innerHTML = CATEGORIES.map(cat => {
+                const active = selectedCategory === cat;
+                return `
+                    <button onclick="selectCategory('${cat}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition ${
+                        active 
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white border-transparent shadow-2xs' 
+                        : 'bg-white text-stone-600 border-pink-100 hover:border-pink-300'
+                    }">${cat}</button>
+                `;
+            }).join('');
+
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = articles.filter(art => {
+                const matchCat = selectedCategory === 'Toate' || art.category === selectedCategory;
+                const matchQ = !query || 
+                    art.title.toLowerCase().includes(query) || 
+                    art.content.toLowerCase().includes(query) ||
+                    art.authorName.toLowerCase().includes(query) ||
+                    art.blogName.toLowerCase().includes(query);
+                return matchCat && matchQ;
+            });
+
+            const grid = document.getElementById('articlesGrid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full bg-white rounded-3xl border border-pink-100 p-10 text-center text-sm text-stone-500">Niciun articol găsit pentru această căutare.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(art => `
+                <article onclick="openArticle(${art.id})" class="cursor-pointer bg-white rounded-3xl border border-pink-100/80 p-6 hover:border-pink-300 hover:shadow-md hover:shadow-pink-500/5 transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="text-[11px] font-semibold bg-pink-50 text-pink-600 px-3 py-1 rounded-full">${escapeHtml(art.category)}</span>
+                            <span class="text-[11px] text-stone-400">${art.date}</span>
+                        </div>
+                        <h3 class="font-serif text-xl font-bold text-[#2D222F] leading-snug mb-2">${escapeHtml(art.title)}</h3>
+                        <p class="text-xs sm:text-sm text-stone-600 line-clamp-3 leading-relaxed">${escapeHtml(art.content)}</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 mt-5 border-t border-pink-50 text-xs">
+                        <div>
+                            <span class="font-bold text-[#2D222F]">${escapeHtml(art.blogName)}</span>
+                            <span class="text-stone-400"> • de ${escapeHtml(art.authorName)}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-stone-400 font-medium">
+                            <span>👁️ ${art.views}</span>
+                            <span>💬 ${art.comments.length}</span>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function selectCategory(cat) {
+            selectedCategory = cat;
+            renderFeed();
+        }
+
+        // Article Detail & No-Account Comments
+        function openArticle(articleId) {
+            const art = articles.find(a => a.id === articleId);
+            if (!art) return;
+
+            art.views += 1;
+            saveState();
+
+            switchView('article');
+            renderArticleDetail(art);
+        }
+
+        function renderArticleDetail(art) {
+            const container = document.getElementById('articleDetailContainer');
+            container.innerHTML = `
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="text-xs font-semibold bg-pink-50 text-pink-600 px-3 py-1 rounded-full">${escapeHtml(art.category)}</span>
+                    <span class="text-xs text-stone-400">• ${art.date} • 👁️ ${art.views} vizualizări</span>
+                </div>
+
+                <h1 class="font-serif text-2xl sm:text-4xl font-bold text-[#2D222F] leading-tight mb-4">${escapeHtml(art.title)}</h1>
+
+                <div class="flex items-center gap-3 pb-6 mb-6 border-b border-pink-100">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 text-white flex items-center justify-center font-serif font-bold">
+                        ${escapeHtml(art.authorName.charAt(0))}
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-[#2D222F]">${escapeHtml(art.blogName)}</div>
+                        <div class="text-xs text-stone-500">Scris de ${escapeHtml(art.authorName)}</div>
+                    </div>
+                </div>
+
+                <div class="text-stone-700 text-sm sm:text-base leading-relaxed whitespace-pre-line mb-10">${escapeHtml(art.content)}</div>
+
+                <!-- Comments Section (No Account Needed) -->
+                <div class="pt-6 border-t border-pink-100">
+                    <h3 class="font-serif text-xl font-bold text-[#2D222F] mb-1">Comentarii (${art.comments.length})</h3>
+                    <p class="text-xs text-stone-500 mb-5">Nu ai nevoie de cont pentru a lăsa un gând autorului.</p>
+
+                    <form onsubmit="submitPublicComment(event, ${art.id})" class="bg-[#FDF9FA] border border-pink-100 rounded-2xl p-4 mb-6 space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="text" id="commentAuthorName" placeholder="Numele tău (opțional)" class="px-3.5 py-2 text-xs bg-white border border-pink-200/80 rounded-xl focus:outline-none focus:border-purple-400">
+                        </div>
+                        <textarea id="commentBodyText" required rows="2" placeholder="Scrie un comentariu..." class="w-full px-3.5 py-2 text-xs bg-white border border-pink-200/80 rounded-xl focus:outline-none focus:border-purple-400 resize-none"></textarea>
+                        <button type="submit" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-xs font-semibold px-5 py-2.5 rounded-full transition shadow-xs">
+                            Trimite comentariul ✨
+                        </button>
+                    </form>
+
+                    <div class="space-y-3">
+                        ${art.comments.length === 0 
+                            ? '<p class="text-xs text-stone-400 italic">Fii primul care lasă un comentariu la acest articol.</p>' 
+                            : art.comments.map(c => `
+                                <div class="bg-[#FDF9FA] border border-pink-100/80 rounded-2xl p-4">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-bold text-[#2D222F]">${escapeHtml(c.name)}</span>
+                                        <span class="text-[11px] text-stone-400">${c.date}</span>
+                                    </div>
+                                    <p class="text-xs sm:text-sm text-stone-600">${escapeHtml(c.text)}</p>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function submitPublicComment(e, articleId) {
+            e.preventDefault();
+            const art = articles.find(a => a.id === articleId);
+            if (!art) return;
+
+            const name = document.getElementById('commentAuthorName').value.trim() || 'Vizitator';
+            const text = document.getElementById('commentBodyText').value.trim();
+            if (!text) return;
+
+            art.comments.unshift({ name, text, date: 'Chiar acum' });
+            saveState();
+            renderArticleDetail(art);
+        }
+
+        // Dashboard & Activity Report
+        function renderDashboard() {
+            const user = getCurrentUser();
+            if (!user) return switchView('home');
+
+            document.getElementById('dashCategoryBadge').textContent = user.category || 'Blog';
+            document.getElementById('dashBlogTitle').textContent = user.blogName || 'Blogul Meu';
+            document.getElementById('dashBlogAbout').textContent = user.about || '';
+
+            const myPosts = articles.filter(a => a.authorEmail === user.email);
+            const totalViews = myPosts.reduce((sum, p) => sum + p.views, 0);
+            const totalComments = myPosts.reduce((sum, p) => sum + p.comments.length, 0);
+
+            document.getElementById('statPostsCount').textContent = myPosts.length;
+            document.getElementById('statViewsCount').textContent = totalViews;
+            document.getElementById('statCommentsCount').textContent = totalComments;
+
+            let rank = 'Blogger la început 🌱';
+            if (myPosts.length >= 5) rank = 'Autor Activ 👑';
+            else if (myPosts.length >= 2) rank = 'Povestitor Constant ✨';
+
+            document.getElementById('statRankLabel').textContent = rank;
+            document.getElementById('statGoalText').textContent = user.commitment || '';
+
+            const list = document.getElementById('myPostsList');
+            if (myPosts.length === 0) {
+                list.innerHTML = `
+                    <div class="bg-white rounded-3xl border border-pink-100 p-8 text-center">
+                        <p class="text-sm text-stone-600 mb-3">Nu ai publicat încă niciun articol pe <strong>${escapeHtml(user.blogName)}</strong>.</p>
+                        <button onclick="openNewPostModal()" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-semibold px-5 py-2.5 rounded-full hover:opacity-95 shadow-xs">
+                            + Scrie primul tău articol
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = myPosts.map(post => `
+                <div class="bg-white rounded-2xl border border-pink-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 text-[11px] text-stone-400 mb-1">
+                            <span class="font-semibold text-pink-600">${escapeHtml(post.category)}</span>
+                            <span>• ${post.date}</span>
+                        </div>
+                        <h3 class="font-serif text-lg font-bold text-[#2D222F]">${escapeHtml(post.title)}</h3>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs font-semibold text-stone-500 shrink-0">
+                        <span>👁️ ${post.views}</span>
+                        <span>💬 ${post.comments.length}</span>
+                        <button onclick="openArticle(${post.id})" class="text-purple-600 hover:underline">Deschide →</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // New Post Modal
+        function openNewPostModal() {
+            const user = getCurrentUser();
+            if (user && user.category) {
+                document.getElementById('postCategoryInput').value = user.category;
+            }
+            const modal = document.getElementById('newPostModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeNewPostModal() {
+            const modal = document.getElementById('newPostModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleCreatePost(e) {
+            e.preventDefault();
+            const user = getCurrentUser();
+            if (!user) return;
+
+            const title = document.getElementById('postTitleInput').value.trim();
+            const category = document.getElementById('postCategoryInput').value;
+            const content = document.getElementById('postContentInput').value.trim();
+
+            articles.unshift({
+                id: Date.now(),
+                authorEmail: user.email,
+                authorName: user.name,
+                blogName: user.blogName,
+                category,
+                title,
+                content,
+                date: 'Chiar acum',
+                views: 1,
+                comments: []
+            });
+
+            saveState();
+            document.getElementById('postTitleInput').value = '';
+            document.getElementById('postContentInput').value = '';
+            closeNewPostModal();
+            renderDashboard();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        // Init
+        renderNavbar();
+        renderFeed();
+    </script>
+</body>
+</html>
